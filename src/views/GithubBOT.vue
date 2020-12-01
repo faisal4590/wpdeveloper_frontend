@@ -32,10 +32,14 @@
             <v-card-title>Taylor</v-card-title>
 
             <v-card-title>Repositories</v-card-title>
-            <v-list-item>
+            <v-list-item
+              v-for="repository in repositoryList"
+              :key="repository.id"
+            >
               <v-list-item-content>
-                <v-list-item-title>1. Single-line item</v-list-item-title>
-                <v-list-item-title>2. Single-line item</v-list-item-title>
+                <v-list-item-title>{{
+                  repository.id + '.' + repository.repository
+                }}</v-list-item-title>
               </v-list-item-content>
             </v-list-item>
           </v-card>
@@ -54,6 +58,7 @@ export default {
       username: '',
       userID: null,
       repositoryList: [],
+      repoFromGithub: [],
       userFoundInDBFlag: false,
     };
   },
@@ -114,17 +119,24 @@ export default {
 
               var url3 =
                 'https://api.github.com/users/' + self.username + '/repos';
-              var self3 = this;
+              //   var self3 = this;
               //   console.log(url3);
               axios
                 .get(url3)
                 .then(function(response) {
                   var data = response.data;
-                  var status = data.status;
-
+                  var status = response.status;
+                  //   console.log('faisal' + data[0].name);
                   if (status == 200) {
-                    self3.repositoryList = data;
-                    console.log(self.repositoryList);
+                    // self3.repoFromGithub = response.data[0];
+                    // console.log(self3.repoFromGithub);
+                    // for (var p = 0; p < data.length; p++) {
+                    //   //   var temp = [];
+                    //   var tempObj = {};
+                    //   //   console.log(data[p].name);
+                    //   tempObj[p] = data[p].name;
+                    // }
+                    // console.log(tempObj);
                   } else {
                     //   alert('Invalid credential');
                     //
