@@ -24,24 +24,35 @@
         <!-- Show profile with repository container -->
         <div>
           <v-card class="mx-auto my-12" max-width="374">
-            <v-img
-              height="250"
-              src="https://cdn.vuetifyjs.com/images/cards/cooking.png"
-            ></v-img>
+            <v-img v-if="ownerAvatar" height="250" :src="ownerAvatar"></v-img>
 
-            <v-card-title>Taylor</v-card-title>
+            <v-card-title>Username: {{ username }}</v-card-title>
 
             <v-card-title>Repositories</v-card-title>
-            <v-list-item
-              v-for="repository in repositoryList"
-              :key="repository.id"
-            >
-              <v-list-item-content>
-                <v-list-item-title>{{
-                  repository.id + '.' + repository.repository
-                }}</v-list-item-title>
-              </v-list-item-content>
-            </v-list-item>
+            <div class="from-database" v-if="fromDatabase">
+              <v-list-item
+                v-for="repository in repositoryList"
+                :key="repository.id"
+              >
+                <v-list-item-content>
+                  <v-list-item-title>{{
+                    repository.id + '.' + repository.repository
+                  }}</v-list-item-title>
+                </v-list-item-content>
+              </v-list-item>
+            </div>
+            <div v-else-if="fromGithub">
+              <v-list-item
+                v-for="repository in repoFromGithub"
+                :key="repository.id"
+              >
+                <v-list-item-content>
+                  <v-list-item-title>{{
+                    repository.id + '.' + repository.name
+                  }}</v-list-item-title>
+                </v-list-item-content>
+              </v-list-item>
+            </div>
           </v-card>
         </div>
       </div>
@@ -60,6 +71,9 @@ export default {
       repositoryList: [],
       repoFromGithub: [],
       userFoundInDBFlag: false,
+      ownerAvatar: null,
+      fromGithub: false,
+      fromDatabase: false,
     };
   },
 
@@ -76,6 +90,7 @@ export default {
       } else {
         var url = env_const.base_url + '/search_user';
         var self = this;
+
         axios
           .post(url, {
             username: this.username,
@@ -102,12 +117,13 @@ export default {
                   var status = data.status;
 
                   if (status == 200) {
-                    //
+                    self.fromDatabase = true;
+                    self.fromGithub = false;
                     self.repositoryList = data.payload.repo_list;
                     // console.log(self.repositoryList);
                   } else {
-                    //   alert('Invalid credential');
-                    //
+                    self.fromDatabase = true;
+                    self.fromGithub = false;
                   }
                 })
                 .catch(function(error) {
@@ -119,27 +135,23 @@ export default {
 
               var url3 =
                 'https://api.github.com/users/' + self.username + '/repos';
-              //   var self3 = this;
-              //   console.log(url3);
+
               axios
                 .get(url3)
                 .then(function(response) {
                   var data = response.data;
                   var status = response.status;
-                  //   console.log('faisal' + data[0].name);
+                  // console.log('faisal' + data[0].name);
                   if (status == 200) {
-                    // self3.repoFromGithub = response.data[0];
-                    // console.log(self3.repoFromGithub);
-                    // for (var p = 0; p < data.length; p++) {
-                    //   //   var temp = [];
-                    //   var tempObj = {};
-                    //   //   console.log(data[p].name);
-                    //   tempObj[p] = data[p].name;
-                    // }
-                    // console.log(tempObj);
+                    self.fromDatabase = false;
+                    self.fromGithub = true;
+
+                    self.repoFromGithub = data;
+                    self.ownerAvatar = data[0].owner.avatar_url;
+                    // console.log(self.ownerAvatar);
                   } else {
-                    //   alert('Invalid credential');
-                    //
+                    self.fromDatabase = false;
+                    self.fromGithub = true;
                   }
                 })
                 .catch(function(error) {
