@@ -29,8 +29,16 @@
             <v-card-title>Username: {{ username }}</v-card-title>
 
             <v-card-title>Repositories</v-card-title>
+            <div class="loading" v-if="showLoading">
+              <v-list-item>
+                <v-list-item-content>
+                  <v-list-item-title>loading..</v-list-item-title>
+                </v-list-item-content>
+              </v-list-item>
+            </div>
             <div class="from-database" v-if="fromDatabase">
               <v-list-item
+                class="repo-list-link"
                 v-for="repository in repositoryList"
                 :key="repository.id"
               >
@@ -43,6 +51,7 @@
             </div>
             <div v-else-if="fromGithub">
               <v-list-item
+                class="repo-list-link"
                 v-for="repository in repoFromGithub"
                 :key="repository.id"
               >
@@ -74,6 +83,7 @@ export default {
       ownerAvatar: null,
       fromGithub: false,
       fromDatabase: false,
+      showLoading: false,
     };
   },
 
@@ -112,6 +122,8 @@ export default {
                   user_id: self.userID,
                 })
                 .then(function(response) {
+                  // start loading
+                  self.showLoading = true;
                   //   console.log(response);
                   var data = response.data;
                   var status = data.status;
@@ -121,18 +133,29 @@ export default {
                     self.fromGithub = false;
                     self.repositoryList = data.payload.repo_list;
                     // console.log(self.repositoryList);
+
+                    // stop loading
+                    self.showLoading = false;
                   } else {
                     self.fromDatabase = true;
                     self.fromGithub = false;
+
+                    // stop loading
+                    self.showLoading = false;
                   }
                 })
                 .catch(function(error) {
                   alert(error.toString());
                   //console.log(error);
+
+                  // stop loading
+                  self.showLoading = false;
                 });
             } else {
               //   calling github api
 
+              // start loading
+              self.showLoading = true;
               var url3 =
                 'https://api.github.com/users/' + self.username + '/repos';
 
@@ -142,6 +165,7 @@ export default {
                   var data = response.data;
                   var status = response.status;
                   // console.log('faisal' + data[0].name);
+
                   if (status == 200) {
                     self.fromDatabase = false;
                     self.fromGithub = true;
@@ -149,23 +173,43 @@ export default {
                     self.repoFromGithub = data;
                     self.ownerAvatar = data[0].owner.avatar_url;
                     // console.log(self.ownerAvatar);
+
+                    // stop loading
+                    self.showLoading = false;
                   } else {
                     self.fromDatabase = false;
                     self.fromGithub = true;
+
+                    // stop loading
+                    self.showLoading = false;
                   }
                 })
                 .catch(function(error) {
                   alert(error.toString());
                   //console.log(error);
+
+                  // stop loading
+                  self.showLoading = false;
                 });
             }
           })
           .catch(function(error) {
             alert(error.toString());
             //console.log(error);
+
+            // stop loading
+            this.showLoading = false;
           });
       }
     },
   },
 };
 </script>
+
+<style scoped>
+.repo-list-link:hover {
+  cursor: pointer;
+  box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
+  transition: 0.3s;
+}
+</style>
